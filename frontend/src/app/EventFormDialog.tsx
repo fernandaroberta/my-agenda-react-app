@@ -9,7 +9,13 @@ import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
-import { createEventEndpoint, ICalendar, IEditingEvent } from "./backend";
+import {
+  createEventEndpoint,
+  deleteEventEndpoint,
+  ICalendar,
+  IEditingEvent,
+  updateEventEndpoint,
+} from "./backend";
 
 interface IEventFormDialogProps {
   event: IEditingEvent | null;
@@ -33,6 +39,8 @@ export function EventFormDialog(props: IEventFormDialogProps) {
     setEvent(props.event);
   }, [props.event]);
 
+  const isNew = !event?.id;
+
   function validateEvent(): boolean {
     if (!event) return false;
 
@@ -55,7 +63,17 @@ export function EventFormDialog(props: IEventFormDialogProps) {
   function save(evt: React.FormEvent) {
     evt.preventDefault();
     if (validateEvent()) {
-      createEventEndpoint(event!).then(props.onSave);
+      if (isNew) {
+        createEventEndpoint(event!).then(props.onSave);
+      } else {
+        updateEventEndpoint(event!).then(props.onSave);
+      }
+    }
+  }
+
+  function deleteEvent() {
+    if (event) {
+      deleteEventEndpoint(event.id!).then(props.onSave);
     }
   }
 
@@ -63,7 +81,9 @@ export function EventFormDialog(props: IEventFormDialogProps) {
     <div>
       <Dialog open={!!event} onClose={props.onCancel} aria-labelledby="form-dialog-title">
         <form onSubmit={save}>
-          <DialogTitle id="form-dialog-title">Criar evento</DialogTitle>
+          <DialogTitle id="form-dialog-title">
+            {(isNew ? "Criar" : "Editar") + " evento"}
+          </DialogTitle>
           <DialogContent>
             {event && (
               <>
@@ -117,6 +137,11 @@ export function EventFormDialog(props: IEventFormDialogProps) {
             )}
           </DialogContent>
           <DialogActions>
+            {!isNew && (
+              <Button type="button" color="secondary" onClick={deleteEvent}>
+                Excluir
+              </Button>
+            )}
             <Button type="button" onClick={props.onCancel}>
               Cancelar
             </Button>
