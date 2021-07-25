@@ -16,43 +16,50 @@ export interface IEvent extends IEditingEvent {
   id: number;
 }
 
-export async function getCalendarsEndpoint(): Promise<ICalendar[]> {
-  const res = await fetch("http://localhost:8080/calendars");
-  return res.json();
+export function getCalendarsEndpoint(): Promise<ICalendar[]> {
+  return fetch("http://localhost:8080/calendars").then(handleResponse);
 }
 
-export async function getEventsEndpoint(from: string, to: string): Promise<IEvent[]> {
-  const res = await fetch(
-    `http://localhost:8080/events?date_gte=${from}&date_lte=${to}&sort=date,time`
+export function getEventsEndpoint(from: string, to: string): Promise<IEvent[]> {
+  return fetch(`http://localhost:8080/events?date_gte=${from}&date_lte=${to}&sort=date,time`).then(
+    handleResponse
   );
-  return res.json();
 }
 
-export async function createEventEndpoint(event: IEditingEvent): Promise<IEvent> {
-  const res = await fetch("http://localhost:8080/events", {
+export function createEventEndpoint(event: IEditingEvent): Promise<IEvent> {
+  return fetch("http://localhost:8080/events", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(event),
-  });
-  return res.json();
+  }).then(handleResponse);
 }
 
-export async function updateEventEndpoint(event: IEditingEvent): Promise<IEvent> {
-  const res = await fetch(`http://localhost:8080/events/${event.id}`, {
+export function updateEventEndpoint(event: IEditingEvent): Promise<IEvent> {
+  return fetch(`http://localhost:8080/events/${event.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(event),
-  });
-  return res.json();
+  }).then(handleResponse);
 }
 
-export async function deleteEventEndpoint(eventId: number): Promise<void> {
-  const res = await fetch(`http://localhost:8080/events/${eventId}`, {
+export function deleteEventEndpoint(eventId: number): Promise<void> {
+  return fetch(`http://localhost:8080/events/${eventId}`, {
     method: "DELETE",
-  });
-  return res.json();
+  }).then(handleResponse);
+}
+
+export function getUserEndpoint(): Promise<void> {
+  return fetch(`http://localhost:8080/auth/user`).then(handleResponse);
+}
+
+function handleResponse(res: Response) {
+  if (res.ok) {
+    return res.json();
+  }
+
+  throw new Error(res.statusText);
 }
